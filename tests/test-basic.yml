@@ -1,0 +1,31 @@
+name: Test basic GraalVM setup
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - id: action
+        uses: .
+        with:
+          java-version: '21'
+          distribution: 'graalvm'
+          set-java-home: 'true'
+          check-for-updates: 'false'
+      - name: Assert java is available
+        run: |
+          echo "JAVA_HOME: $JAVA_HOME"
+          if [ -z "$JAVA_HOME" ]; then
+            echo "FAIL: JAVA_HOME is not set"
+            exit 1
+          fi
+          echo "PASS: JAVA_HOME is set to $JAVA_HOME"
+      - name: Assert java version
+        run: |
+          java -version 2>&1
+          if ! java -version 2>&1 | grep -q "21"; then
+            echo "FAIL: expected Java 21"
+            exit 1
+          fi
+          echo "PASS: Java 21 is installed"
