@@ -9,6 +9,7 @@ Hardened by [Chainguard](https://www.chainguard.dev) from the upstream action at
 | Version | Tag | Upstream commit |
 |---------|-----|-----------------|
 | v1.5.1 | [`v1.5.1`](https://github.com/chainguard-actions/graalvm-setup-graalvm/tree/v1.5.1) | — |
+| v1.5.3 | [`v1.5.3`](https://github.com/chainguard-actions/graalvm-setup-graalvm/tree/v1.5.3) | [`bef4b0e`](https://github.com/graalvm/setup-graalvm/commit/bef4b0e916c7dd079bf60fb95d49139f67e32c5f) |
 | v1.5.4 | [`v1.5.4`](https://github.com/chainguard-actions/graalvm-setup-graalvm/tree/v1.5.4) | [`329c42c`](https://github.com/graalvm/setup-graalvm/commit/329c42c5f4c343bceb505f0b28cc8499bc2bf174) |
 
 ## Privacy
