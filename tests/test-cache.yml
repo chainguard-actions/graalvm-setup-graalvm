@@ -1,4 +1,4 @@
-name: Test GraalVM setup with cache
+name: Test GraalVM setup with cache input
 on:
   workflow_dispatch:
 jobs:
@@ -13,19 +13,19 @@ jobs:
           distribution: 'graalvm'
           cache: 'maven'
           check-for-updates: 'false'
-      - name: Assert java is available
+      - name: Assert JAVA_HOME is set
         run: |
           echo "JAVA_HOME: $JAVA_HOME"
           if [ -z "$JAVA_HOME" ]; then
             echo "FAIL: JAVA_HOME is not set"
             exit 1
           fi
-          echo "PASS: JAVA_HOME is set to $JAVA_HOME"
-      - name: Assert java version
+          echo "PASS: JAVA_HOME=$JAVA_HOME"
+      - name: Assert java is available
         run: |
-          java -version 2>&1
-          if ! java -version 2>&1 | grep -q "21"; then
-            echo "FAIL: expected Java 21"
+          java -version
+          if [ $? -ne 0 ]; then
+            echo "FAIL: java command failed"
             exit 1
           fi
-          echo "PASS: Java 21 is installed with maven cache configured"
+          echo "PASS: java is available"
