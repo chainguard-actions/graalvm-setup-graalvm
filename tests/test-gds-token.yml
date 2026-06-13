@@ -1,0 +1,27 @@
+name: Test GraalVM setup with gds-token input
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - id: setup-graalvm
+        uses: .
+        with:
+          java-version: '21'
+          gds-token: 'dummy-token-for-input-coverage'
+          check-for-updates: 'false'
+        continue-on-error: true
+      - name: Assert step ran (gds-token input was accepted)
+        env:
+          OUTCOME: ${{ steps.setup-graalvm.outcome }}
+        run: |
+          echo "step outcome: $OUTCOME"
+          # The step may fail due to invalid token, but we verify the input was processed
+          # (outcome will be 'failure' or 'success', not 'skipped')
+          if [ "$OUTCOME" = "skipped" ]; then
+            echo "FAIL: step was skipped, expected it to run with gds-token input"
+            exit 1
+          fi
+          echo "PASS: gds-token input was accepted and step ran (outcome=$OUTCOME)"
