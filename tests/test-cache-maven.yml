@@ -1,0 +1,30 @@
+name: Test GraalVM setup with Maven cache
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - id: action
+        uses: .
+        with:
+          java-version: '21'
+          distribution: 'graalvm'
+          cache: 'maven'
+      - name: Assert JAVA_HOME is set
+        run: |
+          echo "JAVA_HOME: $JAVA_HOME"
+          if [ -z "$JAVA_HOME" ]; then
+            echo "FAIL: JAVA_HOME is not set"
+            exit 1
+          fi
+          echo "PASS: JAVA_HOME=$JAVA_HOME"
+      - name: Assert java is available
+        run: |
+          java -version
+          if [ $? -ne 0 ]; then
+            echo "FAIL: java command not found or failed"
+            exit 1
+          fi
+          echo "PASS: java is available"
