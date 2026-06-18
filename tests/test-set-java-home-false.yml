@@ -1,0 +1,47 @@
+name: Test GraalVM setup with set-java-home false
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: Record original JAVA_HOME
+        id: original-java-home
+        run: |
+          echo "original_java_home=${JAVA_HOME:-}" >> "$GITHUB_OUTPUT"
+          echo "Original JAVA_HOME: ${JAVA_HOME:-<unset>}"
+      - id: setup-graalvm
+        uses: .
+        with:
+          java-version: '21'
+          distribution: 'graalvm-community'
+          set-java-home: 'false'
+          check-for-updates: 'false'
+      - name: Assert JAVA_HOME was not changed
+        env:
+          ORIGINAL: ${{ steps.original-java-home.outputs.original_java_home }}
+        run: |
+          echo "JAVA_HOME after action: ${JAVA_HOME:-<unset>}"
+          echo "Original JAVA_HOME: ${ORIGINAL:-<unset>}"
+          if [ "$JAVA_HOME" != "$ORIGINAL" ]; then
+            echo "FAIL: JAVA_HOME was changed from '${ORIGINAL:-<unset>}' to '${JAVA_HOME:-<unset>}'"
+            exit 1
+          fi
+          echo "PASS: JAVA_HOME was not changed by the action"
+      - name: Assert GRAALVM_HOME is set
+        run: |
+          echo "GRAALVM_HOME: $GRAALVM_HOME"
+          if [ -z "$GRAALVM_HOME" ]; then
+            echo "FAIL: GRAALVM_HOME is not set"
+            exit 1
+          fi
+          echo "PASS: GRAALVM_HOME=$GRAALVM_HOME"
+      - name: Assert java is on PATH via GRAALVM_HOME
+        run: |
+          if [ ! -f "$GRAALVM_HOME/bin/java" ]; then
+            echo "FAIL: java not found at $GRAALVM_HOME/bin/java"
+            exit 1
+          fi
+          "$GRAALVM_HOME/bin/java" --version
+          echo "PASS: java is available via GRAALVM_HOME"

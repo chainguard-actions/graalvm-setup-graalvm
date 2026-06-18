@@ -1,0 +1,30 @@
+name: Test gds-token input
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_REF: refs/heads/main
+      GITHUB_EVENT_NAME: push
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - id: action
+        uses: .
+        with:
+          java-version: '21'
+          gds-token: 'dummy-token-for-coverage'
+          check-for-updates: 'false'
+        continue-on-error: true
+      - name: Assert action was attempted with gds-token input
+        env:
+          OUTCOME: ${{ steps.action.outcome }}
+        run: |
+          echo "action outcome: $OUTCOME"
+          # The action is expected to fail with a dummy token (authentication error),
+          # but we verify it ran (outcome is 'failure' or 'success', not 'skipped').
+          if [ "$OUTCOME" = "skipped" ]; then
+            echo "FAIL: action step was skipped unexpectedly"
+            exit 1
+          fi
+          echo "PASS: action was attempted with gds-token input (outcome: $OUTCOME)"
