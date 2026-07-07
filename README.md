@@ -16,6 +16,7 @@ Hardened by [Chainguard](https://www.chainguard.dev) from the upstream action at
 | v1.5.5 | [`v1.5.5`](https://github.com/chainguard-actions/graalvm-setup-graalvm/tree/v1.5.5) | [`809afe6`](https://github.com/graalvm/setup-graalvm/commit/809afe62741147990fbf405045cd15e61bffedfe) |
 | v1.5.6 | [`v1.5.6`](https://github.com/chainguard-actions/graalvm-setup-graalvm/tree/v1.5.6) | [`6f3fa03`](https://github.com/graalvm/setup-graalvm/commit/6f3fa030c4b8f77c1f554a860f593a654538fa38) |
 | v1.6.0 | [`v1.6.0`](https://github.com/chainguard-actions/graalvm-setup-graalvm/tree/v1.6.0) | [`cabbb10`](https://github.com/graalvm/setup-graalvm/commit/cabbb10818fabc989d6dbd508e4846596d20dd2d) |
+| v1.6.1 | [`v1.6.1`](https://github.com/chainguard-actions/graalvm-setup-graalvm/tree/v1.6.1) | [`8c5543b`](https://github.com/graalvm/setup-graalvm/commit/8c5543b71f44568342e106336639979e94a8f6de) |
 
 ## Privacy
 
