@@ -1,0 +1,45 @@
+name: Test GraalVM setup with native-image
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_REF: refs/heads/main
+      GITHUB_EVENT_NAME: push
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - id: setup-graalvm
+        uses: .
+        with:
+          java-version: '21'
+          distribution: 'graalvm-community'
+
+      - name: Assert java is available
+        run: |
+          if ! command -v java &>/dev/null; then
+            echo "FAIL: java command not found in PATH"
+            exit 1
+          fi
+          echo "PASS: java found at $(which java)"
+
+      - name: Assert native-image is available
+        run: |
+          if ! command -v native-image &>/dev/null; then
+            echo "FAIL: native-image command not found in PATH"
+            exit 1
+          fi
+          NI_VER=$(native-image --version 2>&1 | head -1)
+          echo "native-image version: $NI_VER"
+          echo "PASS: native-image found at $(which native-image)"
+
+      - name: Assert gu (GraalVM Updater) or native-image version output
+        run: |
+          NI_VER=$(native-image --version 2>&1)
+          echo "native-image --version output: $NI_VER"
+          if ! echo "$NI_VER" | grep -qi 'graalvm\|native-image\|java'; then
+            echo "FAIL: unexpected native-image version output"
+            exit 1
+          fi
+          echo "PASS"

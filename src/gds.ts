@@ -1,0 +1,302 @@
+import * as c from './constants.js'
+import * as core from '@actions/core'
+import * as fs from 'fs'
+import * as httpClient from '@actions/http-client'
+import * as io from '@actions/io'
+import * as path from 'path'
+import * as stream from 'stream'
+import * as util from 'util'
+import * as semver from 'semver'
+import { IncomingHttpHeaders, OutgoingHttpHeaders } from 'http'
+import { RetryHelper } from './utils/retry-helper.js'
+import { calculateSHA256 } from './utils.js'
+import { ok } from 'assert'
+import { v4 as uuidv4 } from 'uuid'
+
+interface GDSArtifactsResponse {
+  readonly items: GDSArtifact[]
+}
+
+interface GDSArtifact {
+  readonly id: string
+  readonly checksum: string
+  readonly metadata: GDSMetadata[] | null
+}
+
+interface GDSMetadata {
+  readonly key: string
+  readonly value: string
+  readonly description: string
+}
+
+interface GDSErrorResponse {
+  readonly code: string
+  readonly message: string
+}
+
+// Support for Oracle GraalVM innovation releases
+
+export async function downloadGraalVMViaGDS(
+  gdsToken: string,
+  graalVMVersion: string,
+  jdkVersion: string
+): Promise<string> {
+  const userAgent = `GraalVMGitHubAction/${c.ACTION_VERSION} (arch:${c.GRAALVM_ARCH}; os:${c.GRAALVM_PLATFORM}; jdk:${jdkVersion})`
+  const baseArtifact = await fetchArtifact(userAgent, graalVMVersion, jdkVersion)
+  return downloadArtifact(gdsToken, userAgent, baseArtifact)
+}
+
+export async function fetchArtifact(
+  userAgent: string,
+  graalVMVersion: string,
+  jdkVersion: string
+): Promise<GDSArtifact> {
+  const http = new httpClient.HttpClient(userAgent)
+
+  let majorJavaVersion
+  if (semver.valid(jdkVersion)) {
+    majorJavaVersion = semver.major(jdkVersion)
+  } else {
+    majorJavaVersion = jdkVersion
+  }
+
+  const catalogOS = c.IS_MACOS ? 'macos' : c.GRAALVM_PLATFORM
+  const requestUrl = `${c.GDS_BASE}/artifacts?productId=${c.GDS_GRAALVM_PRODUCT_ID}&displayName=Oracle%20GraalVM&metadata=java:jdk${majorJavaVersion}&metadata=os:${catalogOS}&metadata=arch:${c.GRAALVM_ARCH}&metadata=isBase:True&status=PUBLISHED&responseFields=id&responseFields=checksum&sortBy=m:version&sortOrder=DESC`
+  core.debug(`Requesting ${requestUrl}`)
+  const response = await http.get(requestUrl, { accept: 'application/json' })
+  if (response.message.statusCode !== 200) {
+    throw new Error(`Unable to find GraalVM ${graalVMVersion}. Are you sure version: '${graalVMVersion}' is correct?`)
+  }
+  const artifactResponse = JSON.parse(await response.readBody()) as GDSArtifactsResponse
+
+  for (const artifact of artifactResponse.items) {
+    if (artifact.metadata === null) {
+      core.warning(`Artifact is missing metadata. ${c.ERROR_REQUEST}`)
+      continue
+    }
+    for (const metadata of artifact.metadata) {
+      if (metadata.key === 'version') {
+        if (metadata.value.includes(graalVMVersion)) {
+          return artifact
+        }
+        break
+      }
+    }
+  }
+  throw new Error(
+    `Unable to find GDS artifact. Are you sure version: '${graalVMVersion}' and java-version: '${jdkVersion}' are correct?`
+  )
+}
+
+// Support for GraalVM EE
+
+export async function downloadGraalVMViaGDSByJavaVersion(gdsToken: string, javaVersion: string): Promise<string> {
+  const userAgent = `GraalVMGitHubAction/${c.ACTION_VERSION} (arch:${c.GRAALVM_ARCH}; os:${c.GRAALVM_PLATFORM}; java:${javaVersion})`
+  const baseArtifact = await fetchArtifactByJavaVersion(userAgent, 'isBase:True', javaVersion)
+  return downloadArtifact(gdsToken, userAgent, baseArtifact)
+}
+
+export async function downloadGraalVMViaGDSByJavaVersionEELegacy(
+  gdsToken: string,
+  version: string,
+  javaVersion: string
+): Promise<string> {
+  const userAgent = `GraalVMGitHubAction/${c.ACTION_VERSION} (arch:${c.GRAALVM_ARCH}; os:${c.GRAALVM_PLATFORM}; java:${javaVersion})`
+  const baseArtifact = await fetchArtifactEE(userAgent, 'isBase:True', version, javaVersion)
+  return downloadArtifact(gdsToken, userAgent, baseArtifact)
+}
+
+export async function fetchArtifactByJavaVersion(
+  userAgent: string,
+  metadata: string,
+  javaVersion: string
+): Promise<GDSArtifact> {
+  const http = new httpClient.HttpClient(userAgent)
+
+  let filter
+  if (javaVersion.includes('.')) {
+    filter = `metadata=version:${javaVersion}`
+  } else {
+    filter = `sortBy=m:java&sortOrder=DESC&limit=1` // latest and only one item
+  }
+
+  let majorJavaVersion
+  if (semver.valid(javaVersion)) {
+    majorJavaVersion = semver.major(javaVersion)
+  } else {
+    majorJavaVersion = javaVersion
+  }
+
+  const catalogOS = c.IS_MACOS ? 'macos' : c.GRAALVM_PLATFORM
+  const requestUrl = `${c.GDS_BASE}/artifacts?productId=${c.GDS_GRAALVM_PRODUCT_ID}&displayName=Oracle%20GraalVM&${filter}&metadata=java:jdk${majorJavaVersion}&metadata=os:${catalogOS}&metadata=arch:${c.GRAALVM_ARCH}&metadata=${metadata}&status=PUBLISHED&responseFields=id&responseFields=checksum`
+  core.debug(`Requesting ${requestUrl}`)
+  const response = await http.get(requestUrl, { accept: 'application/json' })
+  if (response.message.statusCode !== 200) {
+    throw new Error(
+      `Unable to find GraalVM for JDK ${javaVersion}. Are you sure java-version: '${javaVersion}' is correct?`
+    )
+  }
+  const artifactResponse = JSON.parse(await response.readBody()) as GDSArtifactsResponse
+  if (artifactResponse.items.length !== 1) {
+    throw new Error(
+      artifactResponse.items.length > 1
+        ? `Found more than one GDS artifact. ${c.ERROR_HINT}`
+        : `Unable to find GDS artifact. Are you sure java-version: '${javaVersion}' is correct?`
+    )
+  }
+  return artifactResponse.items[0]
+}
+
+export async function fetchArtifactEE(
+  userAgent: string,
+  metadata: string,
+  version: string,
+  javaVersion: string
+): Promise<GDSArtifact> {
+  const http = new httpClient.HttpClient(userAgent)
+
+  let filter
+  if (version === c.VERSION_LATEST) {
+    filter = `sortBy=displayName&sortOrder=DESC&limit=1` // latest and only one item
+  } else {
+    filter = `metadata=version:${version}`
+  }
+
+  const catalogOS = c.IS_MACOS ? 'macos' : c.GRAALVM_PLATFORM
+  const requestUrl = `${c.GDS_BASE}/artifacts?productId=${c.GDS_GRAALVM_PRODUCT_ID}&${filter}&metadata=edition:ee&metadata=java:jdk${javaVersion}&metadata=os:${catalogOS}&metadata=arch:${c.GRAALVM_ARCH}&metadata=${metadata}&status=PUBLISHED&responseFields=id&responseFields=checksum`
+  core.debug(`Requesting ${requestUrl}`)
+  const response = await http.get(requestUrl, { accept: 'application/json' })
+  if (response.message.statusCode !== 200) {
+    throw new Error(`Unable to find JDK${javaVersion}-based GraalVM EE ${version}`)
+  }
+  const artifactResponse = JSON.parse(await response.readBody()) as GDSArtifactsResponse
+  if (artifactResponse.items.length !== 1) {
+    throw new Error(
+      artifactResponse.items.length > 1
+        ? `Found more than one GDS artifact. ${c.ERROR_HINT}`
+        : `Unable to find GDS artifact. Are you sure version: '${version}' is correct?`
+    )
+  }
+  return artifactResponse.items[0]
+}
+
+async function downloadArtifact(gdsToken: string, userAgent: string, artifact: GDSArtifact): Promise<string> {
+  let downloadPath
+  try {
+    downloadPath = await downloadTool(`${c.GDS_BASE}/artifacts/${artifact.id}/content`, userAgent, {
+      accept: 'application/x-yaml',
+      'x-download-token': gdsToken
+    })
+  } catch (err) {
+    if (err instanceof HTTPError && err.httpStatusCode) {
+      if (err.httpStatusCode === 401) {
+        throw new Error(
+          `The provided "gds-token" was rejected (reason: "${err.gdsError.message}", opc-request-id: ${err.headers['opc-request-id']})`,
+          { cause: err }
+        )
+      }
+    }
+    throw err
+  }
+  const sha256 = calculateSHA256(downloadPath)
+  if (sha256.toLowerCase() !== artifact.checksum.toLowerCase()) {
+    throw new Error(`Checksum does not match (expected: "${artifact.checksum}", got: "${sha256}")`)
+  }
+  return downloadPath
+}
+
+/**
+ * Simplified fork of tool-cache's downloadTool [1] with the ability to set a custom user agent.
+ * [1] https://github.com/actions/toolkit/blob/2f164000dcd42fb08287824a3bc3030dbed33687/packages/tool-cache/src/tool-cache.ts
+ */
+
+class HTTPError extends Error {
+  constructor(
+    readonly httpStatusCode: number | undefined,
+    readonly gdsError: GDSErrorResponse,
+    readonly headers: IncomingHttpHeaders
+  ) {
+    super(`Unexpected HTTP response: ${httpStatusCode}`)
+    Object.setPrototypeOf(this, new.target.prototype)
+  }
+}
+
+async function downloadTool(url: string, userAgent: string, headers?: OutgoingHttpHeaders): Promise<string> {
+  const dest = path.join(getTempDirectory(), uuidv4())
+  await io.mkdirP(path.dirname(dest))
+  core.debug(`Downloading ${url}`)
+  core.debug(`Destination ${dest}`)
+
+  const maxAttempts = 3
+  const minSeconds = 10
+  const maxSeconds = 20
+  const retryHelper = new RetryHelper(maxAttempts, minSeconds, maxSeconds)
+  return await retryHelper.execute(
+    async () => {
+      return await downloadToolAttempt(url, userAgent, dest || '', headers)
+    },
+    (err: Error) => {
+      if (err instanceof HTTPError && err.httpStatusCode) {
+        // Don't retry anything less than 500, except 408 Request Timeout and 429 Too Many Requests
+        if (err.httpStatusCode < 500 && err.httpStatusCode !== 408 && err.httpStatusCode !== 429) {
+          return false
+        }
+      }
+
+      // Otherwise retry
+      return true
+    }
+  )
+}
+
+async function downloadToolAttempt(
+  url: string,
+  userAgent: string,
+  dest: string,
+  headers?: OutgoingHttpHeaders
+): Promise<string> {
+  if (fs.existsSync(dest)) {
+    throw new Error(`Destination file path ${dest} already exists`)
+  }
+
+  // Get the response headers
+  const http = new httpClient.HttpClient(userAgent, [], {
+    allowRetries: false
+  })
+
+  const response: httpClient.HttpClientResponse = await http.get(url, headers)
+  if (response.message.statusCode !== 200) {
+    const errorResponse = JSON.parse(await response.readBody()) as GDSErrorResponse
+    const err = new HTTPError(response.message.statusCode, errorResponse, response.message.headers)
+    core.debug(
+      `Failed to download from "${url}". Code(${response.message.statusCode}) Message(${response.message.statusMessage})`
+    )
+    throw err
+  }
+
+  // Download the response body
+  const pipeline = util.promisify(stream.pipeline)
+  let succeeded = false
+  try {
+    await pipeline(response.message, fs.createWriteStream(dest))
+    core.debug('Download complete')
+    succeeded = true
+    return dest
+  } finally {
+    // Error, delete dest before retry
+    if (!succeeded) {
+      core.debug('Download failed')
+      try {
+        await io.rmRF(dest)
+      } catch (err) {
+        core.debug(`Failed to delete '${dest}'. ${err}`)
+      }
+    }
+  }
+}
+
+function getTempDirectory(): string {
+  const tempDirectory = process.env['RUNNER_TEMP'] || ''
+  ok(tempDirectory, 'Expected RUNNER_TEMP to be defined')
+  return tempDirectory
+}

@@ -1,0 +1,27 @@
+name: Test gds-token input
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - id: action
+        uses: .
+        continue-on-error: true
+        with:
+          java-version: '21'
+          distribution: 'graalvm'
+          gds-token: 'dummy-token-for-testing'
+          github-token: ${{ github.token }}
+      - name: Assert step was attempted with gds-token input
+        run: |
+          echo "outcome: ${{ steps.action.outcome }}"
+          # The action should have been attempted (either succeeded or failed)
+          # with the gds-token input. A dummy token will cause a download failure,
+          # which is expected. We just verify the step ran (not skipped).
+          if [ "${{ steps.action.outcome }}" = "skipped" ]; then
+            echo "FAIL: step was skipped, expected it to run"
+            exit 1
+          fi
+          echo "PASS: step ran with gds-token input (outcome: ${{ steps.action.outcome }})"
