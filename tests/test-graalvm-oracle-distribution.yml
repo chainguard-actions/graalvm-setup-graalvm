@@ -1,4 +1,4 @@
-name: Test Liberica distribution setup
+name: Test Oracle GraalVM distribution setup
 on:
   workflow_dispatch:
 jobs:
@@ -10,8 +10,7 @@ jobs:
         uses: .
         with:
           java-version: '21'
-          distribution: 'liberica'
-          java-package: 'jdk'
+          distribution: 'graalvm'
           github-token: ${{ github.token }}
           check-for-updates: 'false'
 
@@ -42,10 +41,11 @@ jobs:
           fi
           echo "PASS: Java 21 detected"
 
-      - name: Assert javac is available
+      - name: Assert JAVA_HOME bin directory exists
         run: |
-          if ! which javac; then
-            echo "FAIL: javac not found on PATH"
+          if [ ! -d "$JAVA_HOME/bin" ]; then
+            echo "FAIL: $JAVA_HOME/bin directory does not exist"
             exit 1
           fi
-          echo "PASS: javac found at $(which javac)"
+          echo "PASS: $JAVA_HOME/bin exists"
+          ls "$JAVA_HOME/bin/"

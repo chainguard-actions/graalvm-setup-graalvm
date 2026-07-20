@@ -416,11 +416,11 @@ jobs:
           echo "GRAALVM_HOME: $env:GRAALVM_HOME"
           echo "JAVA_HOME: $env:JAVA_HOME"
           java --version
-          if (!(java --version | findstr $env:MATRIX_JAVA_VERSION)) {
+          if (!(java --version | findstr \<$env:MATRIX_JAVA_VERSION\>)) {
             exit 23
           }
           native-image --version
-          if (!(native-image --version | findstr $env:MATRIX_JAVA_VERSION)) {
+          if (!(native-image --version | findstr \<$env:MATRIX_JAVA_VERSION\>)) {
             exit 24
           }
         if: ${{ runner.os == 'Windows' }}

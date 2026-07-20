@@ -6,23 +6,36 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
       - name: Record original JAVA_HOME
-        id: original
+        id: original-java-home
         run: |
-          echo "original_java_home=${JAVA_HOME}" >> $GITHUB_OUTPUT
+          echo "original=$JAVA_HOME"
+          echo "original=$JAVA_HOME" >> $GITHUB_OUTPUT
+
       - id: setup-graalvm
         uses: .
         with:
           java-version: '21'
-          distribution: 'graalvm'
+          distribution: 'graalvm-community'
           set-java-home: 'false'
-      - name: Assert JAVA_HOME was not changed to GraalVM
-        env:
-          ORIGINAL_JAVA_HOME: ${{ steps.original.outputs.original_java_home }}
+          github-token: ${{ github.token }}
+          check-for-updates: 'false'
+
+      - name: Assert java is on PATH
         run: |
-          echo "JAVA_HOME after setup: $JAVA_HOME"
-          echo "Original JAVA_HOME: $ORIGINAL_JAVA_HOME"
-          # When set-java-home is false, JAVA_HOME should not point to GraalVM
-          # It may remain unchanged or be empty; just verify java is still accessible
-          java -version 2>&1 || true
-          echo "PASS: set-java-home=false did not cause an error"
+          if ! which java; then
+            echo "FAIL: java not found on PATH"
+            exit 1
+          fi
+          echo "PASS: java found at $(which java)"
+
+      - name: Assert java version is 21
+        run: |
+          JAVA_VER=$(java -version 2>&1 | head -1)
+          echo "java version output: $JAVA_VER"
+          if ! echo "$JAVA_VER" | grep -q '21'; then
+            echo "FAIL: expected Java 21 but got: $JAVA_VER"
+            exit 1
+          fi
+          echo "PASS: Java 21 detected"

@@ -1,4 +1,4 @@
-name: Test Liberica distribution setup
+name: Test Mandrel distribution setup
 on:
   workflow_dispatch:
 jobs:
@@ -10,8 +10,7 @@ jobs:
         uses: .
         with:
           java-version: '21'
-          distribution: 'liberica'
-          java-package: 'jdk'
+          distribution: 'mandrel'
           github-token: ${{ github.token }}
           check-for-updates: 'false'
 
@@ -42,10 +41,10 @@ jobs:
           fi
           echo "PASS: Java 21 detected"
 
-      - name: Assert javac is available
+      - name: Assert native-image is available (Mandrel includes it)
         run: |
-          if ! which javac; then
-            echo "FAIL: javac not found on PATH"
+          if ! which native-image; then
+            echo "FAIL: native-image not found on PATH (Mandrel should include it)"
             exit 1
           fi
-          echo "PASS: javac found at $(which javac)"
+          echo "PASS: native-image found at $(which native-image)"

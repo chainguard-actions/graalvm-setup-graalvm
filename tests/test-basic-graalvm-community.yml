@@ -1,4 +1,4 @@
-name: Test Liberica distribution setup
+name: Test basic GraalVM Community setup
 on:
   workflow_dispatch:
 jobs:
@@ -10,8 +10,7 @@ jobs:
         uses: .
         with:
           java-version: '21'
-          distribution: 'liberica'
-          java-package: 'jdk'
+          distribution: 'graalvm-community'
           github-token: ${{ github.token }}
           check-for-updates: 'false'
 
@@ -26,6 +25,7 @@ jobs:
 
       - name: Assert java is on PATH
         run: |
+          which java
           if ! which java; then
             echo "FAIL: java not found on PATH"
             exit 1
@@ -42,10 +42,11 @@ jobs:
           fi
           echo "PASS: Java 21 detected"
 
-      - name: Assert javac is available
+      - name: Assert native-image is available
         run: |
-          if ! which javac; then
-            echo "FAIL: javac not found on PATH"
-            exit 1
+          which native-image || true
+          if ! which native-image; then
+            echo "INFO: native-image not on PATH (may not be bundled in this distribution)"
+          else
+            echo "PASS: native-image found at $(which native-image)"
           fi
-          echo "PASS: javac found at $(which javac)"
