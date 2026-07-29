@@ -1,0 +1,57 @@
+name: Test Liberica distribution setup
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - id: setup-graalvm
+        uses: .
+        with:
+          java-version: '21'
+          distribution: 'liberica'
+          java-package: 'jdk'
+          github-token: ${{ github.token }}
+
+      - name: Assert JAVA_HOME is set
+        run: |
+          echo "JAVA_HOME: $JAVA_HOME"
+          if [ -z "$JAVA_HOME" ]; then
+            echo "FAIL: JAVA_HOME is not set"
+            exit 1
+          fi
+          echo "PASS: JAVA_HOME=$JAVA_HOME"
+
+      - name: Assert java is on PATH
+        run: |
+          if ! which java; then
+            echo "FAIL: java not found on PATH"
+            exit 1
+          fi
+          echo "PASS: java found at $(which java)"
+
+      - name: Assert java version is 21
+        run: |
+          JAVA_VER=$(java -version 2>&1 | head -1)
+          echo "Java version output: $JAVA_VER"
+          if ! echo "$JAVA_VER" | grep -q "21"; then
+            echo "FAIL: expected Java 21 but got: $JAVA_VER"
+            exit 1
+          fi
+          echo "PASS: Java 21 detected"
+
+      - name: Assert javac is available
+        run: |
+          if ! which javac; then
+            echo "FAIL: javac not found on PATH"
+            exit 1
+          fi
+          JAVAC_VER=$(javac -version 2>&1)
+          echo "javac version: $JAVAC_VER"
+          if ! echo "$JAVAC_VER" | grep -q "21"; then
+            echo "FAIL: expected javac 21 but got: $JAVAC_VER"
+            exit 1
+          fi
+          echo "PASS: javac 21 detected"

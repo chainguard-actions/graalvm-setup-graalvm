@@ -1,0 +1,40 @@
+name: Test GraalVM setup with set-java-home false
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Record original JAVA_HOME
+        id: original-java-home
+        run: |
+          echo "original=$JAVA_HOME"
+          echo "original=$JAVA_HOME" >> $GITHUB_OUTPUT
+
+      - id: setup-graalvm
+        uses: .
+        with:
+          java-version: '21'
+          distribution: 'graalvm-community'
+          set-java-home: 'false'
+          github-token: ${{ github.token }}
+
+      - name: Assert java is on PATH
+        run: |
+          if ! which java; then
+            echo "FAIL: java not found on PATH"
+            exit 1
+          fi
+          echo "PASS: java found at $(which java)"
+
+      - name: Assert java version is 21
+        run: |
+          JAVA_VER=$(java -version 2>&1 | head -1)
+          echo "Java version output: $JAVA_VER"
+          if ! echo "$JAVA_VER" | grep -q "21"; then
+            echo "FAIL: expected Java 21 but got: $JAVA_VER"
+            exit 1
+          fi
+          echo "PASS: Java 21 detected"
