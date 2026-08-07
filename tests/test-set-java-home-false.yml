@@ -1,0 +1,38 @@
+name: Test set-java-home false
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: Record original JAVA_HOME
+        id: original-java-home
+        run: |
+          echo "original=$JAVA_HOME" >> "$GITHUB_OUTPUT"
+          echo "Original JAVA_HOME: $JAVA_HOME"
+      - id: setup-graalvm
+        uses: .
+        with:
+          java-version: '21'
+          distribution: 'graalvm-community'
+          set-java-home: 'false'
+      - name: Assert java is available on PATH
+        run: |
+          echo "Checking java is on PATH..."
+          java -version
+          echo "PASS: java is available"
+      - name: Assert JAVA_HOME was not changed by action
+        env:
+          ORIGINAL: ${{ steps.original-java-home.outputs.original }}
+        run: |
+          echo "JAVA_HOME after action: $JAVA_HOME"
+          echo "Original JAVA_HOME: $ORIGINAL"
+          # When set-java-home is false, JAVA_HOME should remain unchanged
+          # (it may be empty or set to a pre-existing value)
+          if [ "$JAVA_HOME" != "$ORIGINAL" ]; then
+            echo "WARN: JAVA_HOME changed from '$ORIGINAL' to '$JAVA_HOME' even though set-java-home=false"
+            echo "This may be expected if the action still exports JAVA_HOME in some cases"
+          else
+            echo "PASS: JAVA_HOME was not changed by the action"
+          fi

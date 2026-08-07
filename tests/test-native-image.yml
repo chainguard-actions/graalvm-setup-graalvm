@@ -1,0 +1,41 @@
+name: Test GraalVM Native Image availability
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - id: setup-graalvm
+        uses: .
+        with:
+          java-version: '21'
+          distribution: 'graalvm-community'
+      - name: Assert native-image is available
+        run: |
+          echo "Checking native-image availability..."
+          if ! command -v native-image &>/dev/null; then
+            echo "FAIL: native-image command not found on PATH"
+            exit 1
+          fi
+          native-image --version
+          echo "PASS: native-image is available"
+      - name: Build a simple native image
+        run: |
+          mkdir -p /tmp/ni-test
+          cat > /tmp/ni-test/HelloNative.java << 'EOF'
+          public class HelloNative {
+            public static void main(String[] args) {
+              System.out.println("Hello Native Image!");
+            }
+          }
+          EOF
+          javac /tmp/ni-test/HelloNative.java -d /tmp/ni-test
+          native-image -cp /tmp/ni-test HelloNative -o /tmp/ni-test/hellonative
+          OUTPUT=$(/tmp/ni-test/hellonative)
+          echo "Output: $OUTPUT"
+          if [ "$OUTPUT" != "Hello Native Image!" ]; then
+            echo "FAIL: expected 'Hello Native Image!' but got: $OUTPUT"
+            exit 1
+          fi
+          echo "PASS: native image built and ran successfully"
