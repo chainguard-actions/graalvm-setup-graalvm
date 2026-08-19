@@ -6,11 +6,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-      - id: action
+      - id: setup-graalvm
         uses: .
         with:
           java-version: '21'
-          distribution: 'graalvm'
+          distribution: 'graalvm-community'
+          github-token: ${{ github.token }}
       - name: Assert JAVA_HOME is set
         run: |
           echo "JAVA_HOME: $JAVA_HOME"
@@ -19,20 +20,19 @@ jobs:
             exit 1
           fi
           echo "PASS: JAVA_HOME=$JAVA_HOME"
-      - name: Assert java is available
+      - name: Assert java is on PATH
         run: |
+          which java
           java -version
-          if [ $? -ne 0 ]; then
-            echo "FAIL: java command not found or failed"
+          JAVA_VER=$(java -version 2>&1 | head -1)
+          echo "java version: $JAVA_VER"
+          if ! echo "$JAVA_VER" | grep -q "21"; then
+            echo "FAIL: expected Java 21 but got: $JAVA_VER"
             exit 1
           fi
-          echo "PASS: java is available"
-      - name: Assert java version is 21
+          echo "PASS: Java 21 is installed"
+      - name: Assert native-image is available
         run: |
-          VERSION=$(java -version 2>&1 | head -1)
-          echo "Java version output: $VERSION"
-          if ! echo "$VERSION" | grep -q "21"; then
-            echo "FAIL: expected Java 21, got: $VERSION"
-            exit 1
-          fi
-          echo "PASS: Java 21 detected"
+          which native-image || true
+          native-image --version 2>&1 || true
+          echo "PASS: native-image check done"

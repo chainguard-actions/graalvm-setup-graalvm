@@ -1,4 +1,4 @@
-name: Test GraalVM setup with Maven cache
+name: Test cache input (maven)
 on:
   workflow_dispatch:
 jobs:
@@ -10,7 +10,7 @@ jobs:
         uses: .
         with:
           java-version: '21'
-          distribution: 'graalvm'
+          distribution: 'graalvm-community'
           cache: 'maven'
       - name: Assert JAVA_HOME is set
         run: |
@@ -24,7 +24,7 @@ jobs:
         run: |
           java -version
           if [ $? -ne 0 ]; then
-            echo "FAIL: java command not found or failed"
+            echo "FAIL: java command not available"
             exit 1
           fi
           echo "PASS: java is available"

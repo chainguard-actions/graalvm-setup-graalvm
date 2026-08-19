@@ -1,4 +1,4 @@
-name: Test GraalVM setup with gds-token input
+name: Test gds-token input
 on:
   workflow_dispatch:
 jobs:
@@ -10,9 +10,8 @@ jobs:
         uses: .
         with:
           java-version: '21'
-          distribution: 'graalvm'
+          distribution: 'graalvm-community'
           gds-token: ''
-          check-for-updates: 'false'
       - name: Assert JAVA_HOME is set
         run: |
           echo "JAVA_HOME: $JAVA_HOME"
@@ -25,7 +24,7 @@ jobs:
         run: |
           java -version
           if [ $? -ne 0 ]; then
-            echo "FAIL: java command not found or failed"
+            echo "FAIL: java command not available"
             exit 1
           fi
           echo "PASS: java is available"

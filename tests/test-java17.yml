@@ -1,4 +1,4 @@
-name: Test GraalVM setup with Liberica distribution
+name: Test GraalVM setup with Java 17
 on:
   workflow_dispatch:
 jobs:
@@ -9,21 +9,20 @@ jobs:
       - id: setup-graalvm
         uses: .
         with:
-          java-version: '21'
-          distribution: 'liberica'
-          java-package: 'jdk'
+          java-version: '17'
+          distribution: 'graalvm-community'
           github-token: ${{ github.token }}
-      - name: Assert Java 21 is installed via Liberica
+      - name: Assert Java 17 is installed
         run: |
           java -version 2>&1
           JAVA_VER=$(java -version 2>&1 | head -1)
           echo "java version output: $JAVA_VER"
-          if ! echo "$JAVA_VER" | grep -q "21"; then
-            echo "FAIL: expected Java 21 but got: $JAVA_VER"
+          if ! echo "$JAVA_VER" | grep -q "17"; then
+            echo "FAIL: expected Java 17 but got: $JAVA_VER"
             exit 1
           fi
-          echo "PASS: Java 21 is installed via Liberica"
-      - name: Assert JAVA_HOME is set
+          echo "PASS: Java 17 is installed"
+      - name: Assert JAVA_HOME points to GraalVM
         run: |
           echo "JAVA_HOME: $JAVA_HOME"
           if [ -z "$JAVA_HOME" ]; then
@@ -39,4 +38,10 @@ jobs:
         run: |
           which javac
           javac -version
-          echo "PASS: javac is available"
+          JAVAC_VER=$(javac -version 2>&1)
+          echo "javac version: $JAVAC_VER"
+          if ! echo "$JAVAC_VER" | grep -q "17"; then
+            echo "FAIL: expected javac 17 but got: $JAVAC_VER"
+            exit 1
+          fi
+          echo "PASS: javac 17 is available"

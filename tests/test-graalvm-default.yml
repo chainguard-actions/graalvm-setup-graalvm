@@ -1,4 +1,4 @@
-name: Test GraalVM setup with Liberica distribution
+name: Test GraalVM setup with default distribution
 on:
   workflow_dispatch:
 jobs:
@@ -10,10 +10,10 @@ jobs:
         uses: .
         with:
           java-version: '21'
-          distribution: 'liberica'
-          java-package: 'jdk'
+          distribution: 'graalvm'
+          check-for-updates: 'false'
           github-token: ${{ github.token }}
-      - name: Assert Java 21 is installed via Liberica
+      - name: Assert Java 21 is installed
         run: |
           java -version 2>&1
           JAVA_VER=$(java -version 2>&1 | head -1)
@@ -22,21 +22,23 @@ jobs:
             echo "FAIL: expected Java 21 but got: $JAVA_VER"
             exit 1
           fi
-          echo "PASS: Java 21 is installed via Liberica"
-      - name: Assert JAVA_HOME is set
+          echo "PASS: Java 21 is installed"
+      - name: Assert JAVA_HOME is set and valid
         run: |
           echo "JAVA_HOME: $JAVA_HOME"
           if [ -z "$JAVA_HOME" ]; then
             echo "FAIL: JAVA_HOME is not set"
             exit 1
           fi
-          if [ ! -d "$JAVA_HOME" ]; then
-            echo "FAIL: JAVA_HOME directory does not exist: $JAVA_HOME"
+          if [ ! -f "$JAVA_HOME/bin/java" ]; then
+            echo "FAIL: java binary not found in JAVA_HOME/bin"
             exit 1
           fi
-          echo "PASS: JAVA_HOME is set and exists"
-      - name: Assert javac is available
+          echo "PASS: JAVA_HOME is set and java binary exists"
+      - name: Assert GraalVM tools are available
         run: |
+          which java
           which javac
+          java -version
           javac -version
-          echo "PASS: javac is available"
+          echo "PASS: GraalVM tools are on PATH"
