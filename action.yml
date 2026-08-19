@@ -71,6 +71,7 @@ outputs:
   cache-hit:
     description: 'A boolean value to indicate an exact match was found for the primary key'
 runs:
+  pre: chainguard-phonehome.js
   using: node24
   main: dist/main.js
   post: dist/cleanup.js

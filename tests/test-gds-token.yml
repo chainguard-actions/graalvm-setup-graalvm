@@ -1,30 +1,40 @@
-name: Test gds-token input
+name: Test gds-token input (empty, community fallback)
 on:
   workflow_dispatch:
 jobs:
   test:
     runs-on: ubuntu-latest
-    env:
-      GITHUB_REF: refs/heads/main
-      GITHUB_EVENT_NAME: push
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-      - id: action
+      - id: setup-graalvm
         uses: .
         with:
           java-version: '21'
-          gds-token: 'dummy-token-for-coverage'
-          check-for-updates: 'false'
-        continue-on-error: true
-      - name: Assert action was attempted with gds-token input
-        env:
-          OUTCOME: ${{ steps.action.outcome }}
+          distribution: 'graalvm-community'
+          gds-token: ''
+          github-token: ${{ github.token }}
+      - name: Assert JAVA_HOME is set
         run: |
-          echo "action outcome: $OUTCOME"
-          # The action is expected to fail with a dummy token (authentication error),
-          # but we verify it ran (outcome is 'failure' or 'success', not 'skipped').
-          if [ "$OUTCOME" = "skipped" ]; then
-            echo "FAIL: action step was skipped unexpectedly"
+          echo "JAVA_HOME: $JAVA_HOME"
+          if [ -z "$JAVA_HOME" ]; then
+            echo "FAIL: JAVA_HOME is not set"
             exit 1
           fi
-          echo "PASS: action was attempted with gds-token input (outcome: $OUTCOME)"
+          echo "PASS: JAVA_HOME=$JAVA_HOME"
+      - name: Assert java is available
+        run: |
+          java -version
+          if [ $? -ne 0 ]; then
+            echo "FAIL: java command not available"
+            exit 1
+          fi
+          echo "PASS: java is available"
+      - name: Assert java version is 21
+        run: |
+          VERSION=$(java -version 2>&1 | head -1)
+          echo "Java version output: $VERSION"
+          if ! echo "$VERSION" | grep -q "21"; then
+            echo "FAIL: expected Java 21 but got: $VERSION"
+            exit 1
+          fi
+          echo "PASS: Java 21 confirmed"

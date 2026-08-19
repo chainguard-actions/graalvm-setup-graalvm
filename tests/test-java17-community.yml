@@ -1,0 +1,45 @@
+name: Test GraalVM Community Java 17
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - id: setup-graalvm
+        uses: .
+        with:
+          java-version: '17'
+          distribution: 'graalvm-community'
+          set-java-home: 'true'
+          github-token: ${{ github.token }}
+          check-for-updates: 'false'
+      - name: Assert JAVA_HOME is set
+        run: |
+          echo "JAVA_HOME: $JAVA_HOME"
+          if [ -z "$JAVA_HOME" ]; then
+            echo "FAIL: JAVA_HOME is not set"
+            exit 1
+          fi
+          echo "PASS: JAVA_HOME=$JAVA_HOME"
+      - name: Assert java is available and version is 17
+        run: |
+          VERSION=$(java -version 2>&1 | head -1)
+          echo "Java version output: $VERSION"
+          if ! echo "$VERSION" | grep -q "17"; then
+            echo "FAIL: expected Java 17 but got: $VERSION"
+            exit 1
+          fi
+          echo "PASS: Java 17 detected"
+      - name: Assert JAVA_HOME points to GraalVM
+        run: |
+          echo "JAVA_HOME: $JAVA_HOME"
+          if [ ! -d "$JAVA_HOME" ]; then
+            echo "FAIL: JAVA_HOME directory does not exist: $JAVA_HOME"
+            exit 1
+          fi
+          if [ ! -f "$JAVA_HOME/bin/java" ]; then
+            echo "FAIL: java binary not found in JAVA_HOME/bin"
+            exit 1
+          fi
+          echo "PASS: JAVA_HOME is valid GraalVM directory"
