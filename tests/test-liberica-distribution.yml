@@ -1,4 +1,4 @@
-name: Test basic GraalVM setup
+name: Test GraalVM setup with Liberica distribution
 on:
   workflow_dispatch:
 jobs:
@@ -10,7 +10,8 @@ jobs:
         uses: .
         with:
           java-version: '21'
-          distribution: 'graalvm'
+          distribution: 'liberica'
+          java-package: 'jdk'
           github-token: ${{ github.token }}
           check-for-updates: 'false'
       - name: Assert JAVA_HOME is set
@@ -23,7 +24,6 @@ jobs:
           echo "PASS: JAVA_HOME=$JAVA_HOME"
       - name: Assert java is on PATH
         run: |
-          which java
           if ! which java; then
             echo "FAIL: java not found on PATH"
             exit 1
@@ -39,12 +39,3 @@ jobs:
             exit 1
           fi
           echo "PASS: Java 21 detected"
-      - name: Assert GraalVM is the JVM
-        run: |
-          VERSION=$(java -version 2>&1)
-          echo "java version output: $VERSION"
-          if ! echo "$VERSION" | grep -qi 'graalvm\|graal'; then
-            echo "FAIL: expected GraalVM JVM but got: $VERSION"
-            exit 1
-          fi
-          echo "PASS: GraalVM detected"

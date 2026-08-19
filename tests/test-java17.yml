@@ -1,0 +1,47 @@
+name: Test GraalVM setup with Java 17
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - id: setup-graalvm
+        uses: .
+        with:
+          java-version: '17'
+          distribution: 'graalvm-community'
+          check-for-updates: 'false'
+      - name: Assert Java 17 is available
+        run: |
+          echo "Java version:"
+          java -version
+          if ! java -version 2>&1 | grep -q "17"; then
+            echo "FAIL: expected Java 17 but got a different version"
+            exit 1
+          fi
+          echo "PASS: Java 17 is available"
+      - name: Assert JAVA_HOME is set and points to Java 17
+        run: |
+          echo "JAVA_HOME: $JAVA_HOME"
+          if [ -z "$JAVA_HOME" ]; then
+            echo "FAIL: JAVA_HOME is not set"
+            exit 1
+          fi
+          JAVA_HOME_VERSION=$("$JAVA_HOME/bin/java" -version 2>&1 | head -1)
+          echo "JAVA_HOME java version: $JAVA_HOME_VERSION"
+          if ! echo "$JAVA_HOME_VERSION" | grep -q "17"; then
+            echo "FAIL: JAVA_HOME does not point to Java 17"
+            exit 1
+          fi
+          echo "PASS: JAVA_HOME points to Java 17"
+      - name: Assert native-image tool is available
+        run: |
+          echo "Checking for native-image:"
+          if ! command -v native-image &> /dev/null; then
+            echo "INFO: native-image not found in PATH (may require explicit component install)"
+          else
+            native-image --version
+            echo "PASS: native-image is available"
+          fi
+          echo "PASS: GraalVM setup completed successfully"

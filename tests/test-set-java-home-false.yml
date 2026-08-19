@@ -1,0 +1,42 @@
+name: Test GraalVM setup with set-java-home false
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: Record original JAVA_HOME
+        id: original
+        run: |
+          echo "original_java_home=${JAVA_HOME:-}" >> "$GITHUB_OUTPUT"
+          echo "Original JAVA_HOME: ${JAVA_HOME:-<not set>}"
+      - id: setup-graalvm
+        uses: .
+        with:
+          java-version: '21'
+          distribution: 'graalvm'
+          set-java-home: 'false'
+          github-token: ${{ github.token }}
+          check-for-updates: 'false'
+      - name: Assert java is on PATH
+        run: |
+          if ! which java; then
+            echo "FAIL: java not found on PATH"
+            exit 1
+          fi
+          java -version
+          echo "PASS: java found on PATH"
+      - name: Assert JAVA_HOME was not changed to GraalVM
+        env:
+          ORIGINAL: ${{ steps.original.outputs.original_java_home }}
+        run: |
+          echo "JAVA_HOME after action: ${JAVA_HOME:-<not set>}"
+          echo "Original JAVA_HOME: ${ORIGINAL:-<not set>}"
+          # When set-java-home is false, JAVA_HOME should not point to GraalVM
+          # It may remain unchanged or be empty
+          if echo "${JAVA_HOME:-}" | grep -qi 'graalvm'; then
+            echo "FAIL: JAVA_HOME was set to GraalVM path despite set-java-home=false"
+            exit 1
+          fi
+          echo "PASS: JAVA_HOME was not overridden to GraalVM"

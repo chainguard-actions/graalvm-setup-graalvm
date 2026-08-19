@@ -1,4 +1,4 @@
-name: Test gds-token input
+name: Test cache input (maven)
 on:
   workflow_dispatch:
 jobs:
@@ -11,7 +11,7 @@ jobs:
         with:
           java-version: '21'
           distribution: 'graalvm'
-          gds-token: ''
+          cache: 'maven'
           github-token: ${{ github.token }}
       - name: Assert JAVA_HOME is set
         run: |
@@ -28,4 +28,4 @@ jobs:
             echo "FAIL: java command not available"
             exit 1
           fi
-          echo "PASS: java is available with gds-token input present"
+          echo "PASS: java is available"
