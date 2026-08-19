@@ -1,4 +1,4 @@
-name: Test basic GraalVM setup
+name: Test GraalVM setup with set-java-home false
 on:
   workflow_dispatch:
 jobs:
@@ -6,21 +6,19 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: Record original JAVA_HOME
+        id: original
+        run: |
+          echo "original_java_home=${JAVA_HOME:-}" >> "$GITHUB_OUTPUT"
+          echo "Original JAVA_HOME: ${JAVA_HOME:-<not set>}"
       - id: setup-graalvm
         uses: .
         with:
           java-version: '21'
           distribution: 'graalvm'
+          set-java-home: 'false'
           github-token: ${{ github.token }}
           check-for-updates: 'false'
-      - name: Assert JAVA_HOME is set
-        run: |
-          echo "JAVA_HOME: $JAVA_HOME"
-          if [ -z "$JAVA_HOME" ]; then
-            echo "FAIL: JAVA_HOME is not set"
-            exit 1
-          fi
-          echo "PASS: JAVA_HOME=$JAVA_HOME"
       - name: Assert java is on PATH
         run: |
           which java
@@ -35,12 +33,3 @@ jobs:
             exit 1
           fi
           echo "PASS: Java 21 detected"
-      - name: Assert GraalVM is installed
-        run: |
-          VERSION=$(java -version 2>&1)
-          echo "java version: $VERSION"
-          if ! echo "$VERSION" | grep -qi "graalvm\|graal"; then
-            echo "FAIL: expected GraalVM JDK but got: $VERSION"
-            exit 1
-          fi
-          echo "PASS: GraalVM detected"

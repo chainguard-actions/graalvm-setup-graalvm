@@ -1,4 +1,4 @@
-name: Test basic GraalVM setup
+name: Test GraalVM setup with Java 17
 on:
   workflow_dispatch:
 jobs:
@@ -9,7 +9,7 @@ jobs:
       - id: setup-graalvm
         uses: .
         with:
-          java-version: '21'
+          java-version: '17'
           distribution: 'graalvm'
           github-token: ${{ github.token }}
           check-for-updates: 'false'
@@ -26,15 +26,15 @@ jobs:
           which java
           java -version
           echo "PASS: java is available on PATH"
-      - name: Assert java version is 21
+      - name: Assert java version is 17
         run: |
           VERSION=$(java -version 2>&1 | head -1)
           echo "java version output: $VERSION"
-          if ! echo "$VERSION" | grep -q "21"; then
-            echo "FAIL: expected Java 21 but got: $VERSION"
+          if ! echo "$VERSION" | grep -q "17"; then
+            echo "FAIL: expected Java 17 but got: $VERSION"
             exit 1
           fi
-          echo "PASS: Java 21 detected"
+          echo "PASS: Java 17 detected"
       - name: Assert GraalVM is installed
         run: |
           VERSION=$(java -version 2>&1)

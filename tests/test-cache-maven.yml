@@ -1,4 +1,4 @@
-name: Test gds-token input (empty/unused)
+name: Test cache input (maven)
 on:
   workflow_dispatch:
 jobs:
@@ -11,7 +11,7 @@ jobs:
         with:
           java-version: '21'
           distribution: 'graalvm'
-          gds-token: ''
+          cache: 'maven'
       - name: Assert JAVA_HOME is set
         run: |
           echo "JAVA_HOME: $JAVA_HOME"

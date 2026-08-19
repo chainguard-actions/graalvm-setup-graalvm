@@ -1,4 +1,4 @@
-name: Test basic GraalVM setup
+name: Test GraalVM setup with Mandrel distribution
 on:
   workflow_dispatch:
 jobs:
@@ -10,7 +10,7 @@ jobs:
         uses: .
         with:
           java-version: '21'
-          distribution: 'graalvm'
+          distribution: 'mandrel'
           github-token: ${{ github.token }}
           check-for-updates: 'false'
       - name: Assert JAVA_HOME is set
@@ -35,12 +35,8 @@ jobs:
             exit 1
           fi
           echo "PASS: Java 21 detected"
-      - name: Assert GraalVM is installed
+      - name: Assert native-image is available (Mandrel includes it)
         run: |
-          VERSION=$(java -version 2>&1)
-          echo "java version: $VERSION"
-          if ! echo "$VERSION" | grep -qi "graalvm\|graal"; then
-            echo "FAIL: expected GraalVM JDK but got: $VERSION"
-            exit 1
-          fi
-          echo "PASS: GraalVM detected"
+          which native-image || (echo "FAIL: native-image not found on PATH" && exit 1)
+          native-image --version
+          echo "PASS: native-image is available"
