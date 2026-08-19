@@ -1,0 +1,31 @@
+name: Test GraalVM setup cache-hit output
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_EVENT_NAME: push
+      GITHUB_REF: refs/heads/main
+    steps:
+      - uses: actions/checkout@v4
+      - id: setup-graalvm
+        uses: .
+        with:
+          java-version: '21'
+          distribution: 'graalvm'
+      - name: Assert cache-hit output is defined
+        env:
+          CACHE_HIT: ${{ steps.setup-graalvm.outputs.cache-hit }}
+        run: |
+          echo "cache-hit: $CACHE_HIT"
+          # cache-hit should be either 'true' or 'false' (or empty on first run)
+          if [ "$CACHE_HIT" != "true" ] && [ "$CACHE_HIT" != "false" ] && [ -n "$CACHE_HIT" ]; then
+            echo "FAIL: cache-hit has unexpected value: '$CACHE_HIT'"
+            exit 1
+          fi
+          echo "PASS: cache-hit output is valid (value: '$CACHE_HIT')"
+      - name: Assert java is available after setup
+        run: |
+          java -version
+          echo "PASS: java is available"

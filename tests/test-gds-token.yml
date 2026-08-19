@@ -1,20 +1,30 @@
-name: Test GraalVM setup with gds-token input
+name: Test gds-token input
 on:
   workflow_dispatch:
 jobs:
   test:
     runs-on: ubuntu-latest
+    env:
+      GITHUB_REF: refs/heads/main
+      GITHUB_EVENT_NAME: push
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-      - id: action
+      - uses: actions/checkout@v4
+      - id: setup-graalvm
         uses: .
         with:
           java-version: '21'
           distribution: 'graalvm'
-          gds-token: 'dummy-token-for-input-coverage'
+          gds-token: 'dummy-gds-token-for-testing'
           check-for-updates: 'false'
         continue-on-error: true
-      - name: Assert action ran (gds-token input exercised)
+      - name: Assert action was invoked with gds-token
         run: |
-          echo "Action step completed (with or without error due to invalid token)"
-          echo "PASS: gds-token input was accepted by the action"
+          echo "Step outcome: ${{ steps.setup-graalvm.outcome }}"
+          # The action should have been invoked (outcome is either success or failure,
+          # not skipped). A dummy token will cause a download failure, which is expected.
+          OUTCOME="${{ steps.setup-graalvm.outcome }}"
+          if [ "$OUTCOME" = "skipped" ]; then
+            echo "FAIL: action was skipped, expected it to run"
+            exit 1
+          fi
+          echo "PASS: action was invoked with gds-token input (outcome: $OUTCOME)"
