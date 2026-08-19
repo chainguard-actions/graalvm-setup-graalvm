@@ -1,0 +1,37 @@
+name: Test GraalVM setup with Liberica distribution
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - id: setup-graalvm
+        uses: .
+        with:
+          java-version: '21'
+          distribution: 'liberica'
+          java-package: 'jdk'
+      - name: Assert java is available
+        run: |
+          echo "Checking java is on PATH..."
+          which java || { echo "FAIL: java not found on PATH"; exit 1; }
+          java -version
+          echo "PASS: java is available"
+      - name: Assert JAVA_HOME is set
+        run: |
+          echo "JAVA_HOME=$JAVA_HOME"
+          if [ -z "$JAVA_HOME" ]; then
+            echo "FAIL: JAVA_HOME is not set"
+            exit 1
+          fi
+          echo "PASS: JAVA_HOME is set to $JAVA_HOME"
+      - name: Assert Java version is 21
+        run: |
+          VERSION=$(java -version 2>&1 | head -1)
+          echo "Java version output: $VERSION"
+          if ! echo "$VERSION" | grep -q "21"; then
+            echo "FAIL: expected Java 21, got: $VERSION"
+            exit 1
+          fi
+          echo "PASS: Java 21 (Liberica) is installed"

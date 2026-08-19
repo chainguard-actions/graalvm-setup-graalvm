@@ -4,37 +4,29 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
-    env:
-      GITHUB_REF: refs/heads/main
-      GITHUB_EVENT_NAME: push
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-      - id: action
+      - id: setup-graalvm
         uses: .
         with:
           java-version: '21'
+          distribution: 'graalvm-community'
+          github-token: ${{ github.token }}
+      - name: Assert java is on PATH
+        run: |
+          echo "Checking java version..."
+          java -version
+          if ! java -version 2>&1 | grep -q "21"; then
+            echo "FAIL: expected Java 21 but got something else"
+            java -version
+            exit 1
+          fi
+          echo "PASS: Java 21 is available"
       - name: Assert JAVA_HOME is set
         run: |
-          echo "JAVA_HOME: $JAVA_HOME"
+          echo "JAVA_HOME=$JAVA_HOME"
           if [ -z "$JAVA_HOME" ]; then
             echo "FAIL: JAVA_HOME is not set"
             exit 1
           fi
-          echo "PASS: JAVA_HOME=$JAVA_HOME"
-      - name: Assert java is available
-        run: |
-          java -version
-          if [ $? -ne 0 ]; then
-            echo "FAIL: java command not available"
-            exit 1
-          fi
-          echo "PASS: java is available"
-      - name: Assert java version is 21
-        run: |
-          VERSION=$(java -version 2>&1 | head -1)
-          echo "Java version output: $VERSION"
-          if ! echo "$VERSION" | grep -q "21"; then
-            echo "FAIL: expected Java 21 but got: $VERSION"
-            exit 1
-          fi
-          echo "PASS: Java 21 is installed"
+          echo "PASS: JAVA_HOME is set to $JAVA_HOME"

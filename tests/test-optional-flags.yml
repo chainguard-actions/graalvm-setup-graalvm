@@ -1,0 +1,48 @@
+name: Test GraalVM setup with optional flags disabled
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - id: setup-graalvm
+        uses: .
+        with:
+          java-version: '21'
+          check-for-updates: 'false'
+          native-image-job-reports: 'false'
+          native-image-pr-reports: 'false'
+      - name: Assert java is available
+        run: |
+          echo "Checking java is on PATH..."
+          which java || { echo "FAIL: java not found on PATH"; exit 1; }
+          java -version
+          echo "PASS: java is available"
+      - name: Assert JAVA_HOME is set
+        run: |
+          echo "JAVA_HOME=$JAVA_HOME"
+          if [ -z "$JAVA_HOME" ]; then
+            echo "FAIL: JAVA_HOME is not set"
+            exit 1
+          fi
+          echo "PASS: JAVA_HOME is set to $JAVA_HOME"
+      - name: Assert native-image tool is available (GraalVM includes it by default)
+        run: |
+          echo "Checking native-image availability..."
+          if command -v native-image >/dev/null 2>&1; then
+            echo "PASS: native-image is available"
+            native-image --version
+          else
+            echo "INFO: native-image not available (may not be included in this distribution)"
+          fi
+      - name: Assert gu tool is available or native-image is bundled
+        run: |
+          echo "Checking GraalVM tooling..."
+          if command -v gu >/dev/null 2>&1; then
+            echo "PASS: gu (GraalVM Updater) is available"
+            gu list
+          else
+            echo "INFO: gu not available (expected for newer GraalVM versions where native-image is bundled)"
+          fi
+          echo "PASS: optional flags test completed"

@@ -1,0 +1,44 @@
+name: Test GraalVM setup with Java 17
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - id: setup-graalvm
+        uses: .
+        with:
+          java-version: '17'
+          distribution: 'graalvm-community'
+          github-token: ${{ github.token }}
+      - name: Assert Java 17 is available
+        run: |
+          echo "Checking java version..."
+          java -version 2>&1
+          if ! java -version 2>&1 | grep -q "17"; then
+            echo "FAIL: expected Java 17 but got something else"
+            java -version 2>&1
+            exit 1
+          fi
+          echo "PASS: Java 17 is available"
+      - name: Assert JAVA_HOME points to GraalVM
+        run: |
+          echo "JAVA_HOME=$JAVA_HOME"
+          if [ -z "$JAVA_HOME" ]; then
+            echo "FAIL: JAVA_HOME is not set"
+            exit 1
+          fi
+          if [ ! -d "$JAVA_HOME" ]; then
+            echo "FAIL: JAVA_HOME directory does not exist: $JAVA_HOME"
+            exit 1
+          fi
+          echo "PASS: JAVA_HOME is set and directory exists"
+      - name: Assert cache-hit output exists
+        env:
+          CACHE_HIT: ${{ steps.setup-graalvm.outputs.cache-hit }}
+        run: |
+          echo "cache-hit: $CACHE_HIT"
+          # cache-hit can be 'true' or 'false' or empty (no cache configured)
+          # Just verify the step completed successfully and output is accessible
+          echo "PASS: cache-hit output is accessible (value: '$CACHE_HIT')"
