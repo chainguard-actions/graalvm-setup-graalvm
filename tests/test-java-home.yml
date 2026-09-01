@@ -1,0 +1,40 @@
+name: Test JAVA_HOME is set
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - id: setup-graalvm
+        uses: .
+        with:
+          java-version: '21'
+          distribution: 'graalvm-community'
+          set-java-home: 'true'
+          check-for-updates: 'false'
+      - name: Assert JAVA_HOME is set
+        run: |
+          echo "JAVA_HOME: $JAVA_HOME"
+          if [ -z "$JAVA_HOME" ]; then
+            echo "FAIL: JAVA_HOME is not set"
+            exit 1
+          fi
+          echo "PASS: JAVA_HOME is set to $JAVA_HOME"
+      - name: Assert JAVA_HOME points to a valid JDK
+        run: |
+          echo "JAVA_HOME: $JAVA_HOME"
+          if [ ! -f "$JAVA_HOME/bin/java" ]; then
+            echo "FAIL: $JAVA_HOME/bin/java does not exist"
+            exit 1
+          fi
+          echo "PASS: $JAVA_HOME/bin/java exists"
+      - name: Assert JAVA_HOME java version matches
+        run: |
+          JAVA_VER=$("$JAVA_HOME/bin/java" -version 2>&1 | head -1)
+          echo "java version: $JAVA_VER"
+          if ! echo "$JAVA_VER" | grep -q '21'; then
+            echo "FAIL: expected Java 21 in JAVA_HOME but got: $JAVA_VER"
+            exit 1
+          fi
+          echo "PASS: JAVA_HOME points to Java 21"

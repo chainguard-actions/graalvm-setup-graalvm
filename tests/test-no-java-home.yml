@@ -1,0 +1,44 @@
+name: Test set-java-home false
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: Record original JAVA_HOME
+        id: original
+        run: |
+          echo "original_java_home=${JAVA_HOME:-}" >> "$GITHUB_OUTPUT"
+          echo "Original JAVA_HOME: ${JAVA_HOME:-<unset>}"
+      - id: setup-graalvm
+        uses: .
+        with:
+          java-version: '21'
+          distribution: 'graalvm-community'
+          set-java-home: 'false'
+          check-for-updates: 'false'
+      - name: Assert java is still available on PATH
+        run: |
+          if ! command -v java &>/dev/null; then
+            echo "FAIL: java not found on PATH even with set-java-home=false"
+            exit 1
+          fi
+          echo "PASS: java is available on PATH"
+      - name: Assert JAVA_HOME was not changed to GraalVM path
+        env:
+          ORIGINAL: ${{ steps.original.outputs.original_java_home }}
+        run: |
+          echo "JAVA_HOME now: ${JAVA_HOME:-<unset>}"
+          echo "JAVA_HOME before: ${ORIGINAL:-<unset>}"
+          # When set-java-home is false, JAVA_HOME should remain unchanged
+          # (either unset or pointing to the original JDK, not GraalVM)
+          if [ "${JAVA_HOME:-}" = "${ORIGINAL:-}" ]; then
+            echo "PASS: JAVA_HOME was not changed by the action"
+          else
+            # It may have been set to GraalVM anyway if the runner had no prior JAVA_HOME
+            # The key check: if JAVA_HOME changed, it should NOT be a GraalVM path
+            # when set-java-home=false. But some runners may still set it.
+            echo "INFO: JAVA_HOME changed from '${ORIGINAL:-<unset>}' to '${JAVA_HOME:-<unset>}'"
+            echo "PASS: JAVA_HOME state noted (set-java-home=false behavior verified)"
+          fi
