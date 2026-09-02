@@ -1,0 +1,81 @@
+import * as path from 'path'
+import * as c from '../src/constants'
+import {
+  downloadGraalVMViaGDSByJavaVersion,
+  downloadGraalVMViaGDSByJavaVersionEELegacy,
+  fetchArtifact,
+  fetchArtifactByJavaVersion,
+  fetchArtifactEE
+} from '../src/gds'
+import { afterAll, beforeAll, expect, test } from '@jest/globals'
+import { fileURLToPath } from 'url'
+
+const TEST_USER_AGENT = 'GraalVMGitHubActionTest/1.0.4'
+const originalGDSTarget = { ...c.GDS_TARGET }
+
+const dirname = path.dirname(fileURLToPath(import.meta.url))
+process.env['RUNNER_TEMP'] = path.join(dirname, 'TEMP')
+
+beforeAll(() => {
+  // The asserted artifact IDs are Linux amd64 artifacts.
+  Object.assign(c.GDS_TARGET, { os: 'linux', arch: 'amd64' })
+})
+
+afterAll(() => {
+  Object.assign(c.GDS_TARGET, originalGDSTarget)
+})
+
+test('fetch artifacts', async () => {
+  let artifact
+  // Test innovation releases
+  for (const version of ['25.3', '25.3.4.1']) {
+    artifact = await fetchArtifact(TEST_USER_AGENT, version, '25')
+    expect(artifact.id).toBe('47B3692F0EC54D22A1DAC450AD7225D1')
+    expect(artifact.checksum).toBe('814deac144a912035c4e824e05fa06a2e0c83821f0fb9d1084bc916e5eeef247')
+  }
+  // Test 25 LTS
+  artifact = await fetchArtifact(TEST_USER_AGENT, '25.0', '25')
+  expect(artifact.checksum).toHaveLength('b6f3dace24cf1960ec790216f4c86f00d4f43df64e4e8b548f6382f04894713f'.length)
+})
+
+test('fetch artifacts by java version', async () => {
+  let artifact = await fetchArtifactByJavaVersion(TEST_USER_AGENT, '17.0.12')
+  expect(artifact.id).toBe('1C351E8F41BB8E9EE0631518000AE5F2')
+  expect(artifact.checksum).toBe('b6f3dace24cf1960ec790216f4c86f00d4f43df64e4e8b548f6382f04894713f')
+  artifact = await fetchArtifactByJavaVersion(TEST_USER_AGENT, '17')
+  expect(artifact.checksum).toHaveLength('b6f3dace24cf1960ec790216f4c86f00d4f43df64e4e8b548f6382f04894713f'.length)
+})
+
+test('errors when downloading artifacts', async () => {
+  await expect(downloadGraalVMViaGDSByJavaVersion('invalid', '17')).rejects.toThrow(
+    'The provided "gds-token" was rejected (reason: "Invalid download token", opc-request-id: '
+  )
+  await expect(downloadGraalVMViaGDSByJavaVersion('invalid', '1')).rejects.toThrow(
+    "Unable to find GDS artifact. Are you sure java-version: '1' is correct?"
+  )
+})
+
+test('fetch legacy artifacts', async () => {
+  let artifact = await fetchArtifactEE(TEST_USER_AGENT, '22.1.0', '11')
+  expect(artifact.id).toBe('DCECD1C1B0B5B8DBE0536E16000A5C74')
+  expect(artifact.checksum).toBe('4280782f6c7fcabe0ba707e8389cbfaf7bbe6b0cf634d309e6efcd1b172e3ce6')
+  artifact = await fetchArtifactEE(TEST_USER_AGENT, '22.1.0', '17')
+  expect(artifact.id).toBe('DCECD2068882A0E9E0536E16000A9504')
+  expect(artifact.checksum).toBe('e897add7d94bc456a61e6f927e831dff759efa3392a4b69c720dd3debc8f947d')
+
+  await expect(fetchArtifactEE(TEST_USER_AGENT, '1.0.0', '11')).rejects.toThrow(
+    'Unable to find JDK11-based GraalVM EE 1.0.0'
+  )
+})
+
+test('errors when downloading legacy artifacts', async () => {
+  await expect(downloadGraalVMViaGDSByJavaVersionEELegacy('invalid', '22.1.0', '11')).rejects.toThrow(
+    'The provided "gds-token" was rejected (reason: "Invalid download token", opc-request-id: '
+  )
+  await expect(downloadGraalVMViaGDSByJavaVersionEELegacy('invalid', '1.0.0', '11')).rejects.toThrow(
+    'Unable to find JDK11-based GraalVM EE 1.0.0'
+  )
+  await expect(downloadGraalVMViaGDSByJavaVersionEELegacy('invalid', '22.1.0', '1')).rejects.toThrow(
+    'Unable to find JDK1-based GraalVM EE 22.1.0'
+  )
+})

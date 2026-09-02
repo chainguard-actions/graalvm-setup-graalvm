@@ -1,0 +1,41 @@
+name: Test set-java-home false
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: Record original JAVA_HOME
+        id: original
+        run: |
+          echo "original_java_home=${JAVA_HOME:-}" >> "$GITHUB_OUTPUT"
+      - id: setup-graalvm
+        uses: .
+        with:
+          java-version: '21'
+          distribution: 'graalvm-community'
+          set-java-home: 'false'
+          github-token: ${{ github.token }}
+          check-for-updates: 'false'
+      - name: Assert JAVA_HOME was not changed by GraalVM action
+        env:
+          ORIGINAL: ${{ steps.original.outputs.original_java_home }}
+        run: |
+          echo "JAVA_HOME after action: $JAVA_HOME"
+          echo "JAVA_HOME before action: $ORIGINAL"
+          # When set-java-home is false, JAVA_HOME should remain unchanged
+          if [ "$JAVA_HOME" != "$ORIGINAL" ]; then
+            echo "FAIL: JAVA_HOME was changed from '$ORIGINAL' to '$JAVA_HOME' despite set-java-home=false"
+            exit 1
+          fi
+          echo "PASS: JAVA_HOME was not changed"
+      - name: Assert java is still available via PATH
+        run: |
+          echo "Checking java is on PATH..."
+          if ! command -v java >/dev/null 2>&1; then
+            echo "FAIL: java not found in PATH"
+            exit 1
+          fi
+          java -version
+          echo "PASS: java is available in PATH"

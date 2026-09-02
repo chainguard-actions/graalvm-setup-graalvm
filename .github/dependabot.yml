@@ -1,0 +1,21 @@
+version: 2
+
+multi-ecosystem-groups:
+  all:
+    schedule:
+      interval: 'monthly'
+
+updates:
+  - package-ecosystem: 'github-actions'
+    directory: '/'
+    patterns: ['*']
+    multi-ecosystem-group: 'all'
+
+  - package-ecosystem: 'npm'
+    directory: '/'
+    patterns: ['*']
+    multi-ecosystem-group: 'all'
+    ignore:
+      - dependency-name: 'typescript'
+        update-types:
+          - 'version-update:semver-major'
