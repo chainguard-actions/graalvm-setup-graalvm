@@ -15,12 +15,9 @@ jobs:
           github-token: ${{ github.token }}
       - name: Assert Java is available
         run: |
-          echo "Checking java is on PATH after setup with cache=maven"
-          if ! java -version 2>&1; then
-            echo "FAIL: java not found on PATH"
-            exit 1
-          fi
-          echo "PASS: java is available"
+          echo "Checking Java installation with cache=maven"
+          java -version
+          echo "PASS: Java is available after setup with cache input"
       - name: Assert JAVA_HOME is set
         run: |
           echo "JAVA_HOME: $JAVA_HOME"
