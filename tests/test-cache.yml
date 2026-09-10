@@ -10,8 +10,9 @@ jobs:
         uses: .
         with:
           java-version: '21'
-          distribution: 'graalvm-community'
+          distribution: 'graalvm'
           cache: 'maven'
+          github-token: ${{ github.token }}
       - name: Assert JAVA_HOME is set
         run: |
           echo "JAVA_HOME: $JAVA_HOME"
@@ -23,4 +24,8 @@ jobs:
       - name: Assert java is available
         run: |
           java -version
+          if [ $? -ne 0 ]; then
+            echo "FAIL: java command not available"
+            exit 1
+          fi
           echo "PASS: java is available"
