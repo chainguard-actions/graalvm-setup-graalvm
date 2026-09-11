@@ -1,4 +1,4 @@
-name: Test gds-token input
+name: Test gds-token input (GraalVM Enterprise Edition)
 on:
   workflow_dispatch:
 jobs:
@@ -12,16 +12,22 @@ jobs:
         with:
           java-version: '21'
           distribution: 'graalvm'
-          gds-token: 'dummy-token-for-testing'
+          gds-token: 'fake-gds-token-for-coverage'
           github-token: ${{ github.token }}
-      - name: Assert step was attempted with gds-token input
+      - name: Assert action ran (gds-token input exercised)
+        env:
+          OUTCOME: ${{ steps.action.outcome }}
         run: |
-          echo "outcome: ${{ steps.action.outcome }}"
-          # The action should have been attempted (either succeeded or failed)
-          # with the gds-token input. A dummy token will cause a download failure,
-          # which is expected. We just verify the step ran (not skipped).
-          if [ "${{ steps.action.outcome }}" = "skipped" ]; then
-            echo "FAIL: step was skipped, expected it to run"
+          echo "outcome: $OUTCOME"
+          # With a fake GDS token, the action is expected to fail because it
+          # cannot authenticate with the GraalVM Download Service.
+          # We accept either failure (expected) or success (if distribution
+          # falls back to community edition).
+          if [ "$OUTCOME" = "failure" ]; then
+            echo "PASS: action failed gracefully with invalid gds-token (expected)"
+          elif [ "$OUTCOME" = "success" ]; then
+            echo "PASS: action succeeded (distribution may have ignored gds-token)"
+          else
+            echo "FAIL: unexpected outcome '$OUTCOME'"
             exit 1
           fi
-          echo "PASS: step ran with gds-token input (outcome: ${{ steps.action.outcome }})"
