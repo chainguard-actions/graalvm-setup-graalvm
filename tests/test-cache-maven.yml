@@ -19,12 +19,8 @@ jobs:
             echo "FAIL: JAVA_HOME is not set"
             exit 1
           fi
-          echo "PASS"
+          echo "PASS: JAVA_HOME=$JAVA_HOME"
       - name: Assert java is available
         run: |
           java -version
-          if [ $? -ne 0 ]; then
-            echo "FAIL: java command failed"
-            exit 1
-          fi
-          echo "PASS"
+          echo "PASS: java is available"
