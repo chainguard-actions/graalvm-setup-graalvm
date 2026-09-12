@@ -1,4 +1,4 @@
-name: Test cache input (maven)
+name: Test cache input (Maven)
 on:
   workflow_dispatch:
 jobs:
@@ -10,9 +10,8 @@ jobs:
         uses: .
         with:
           java-version: '21'
-          distribution: 'graalvm'
+          distribution: 'graalvm-community'
           cache: 'maven'
-          github-token: ${{ github.token }}
       - name: Assert JAVA_HOME is set
         run: |
           echo "JAVA_HOME: $JAVA_HOME"
@@ -21,11 +20,11 @@ jobs:
             exit 1
           fi
           echo "PASS: JAVA_HOME=$JAVA_HOME"
-      - name: Assert java is available
+      - name: Assert java is on PATH
         run: |
           java -version
           if [ $? -ne 0 ]; then
-            echo "FAIL: java command not available"
+            echo "FAIL: java not found on PATH"
             exit 1
           fi
           echo "PASS: java is available"
