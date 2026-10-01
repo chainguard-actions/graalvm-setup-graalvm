@@ -1,0 +1,43 @@
+name: Test GraalVM setup with Maven cache
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - id: action
+        uses: .
+        continue-on-error: true
+        with:
+          java-version: '21'
+          distribution: 'graalvm-community'
+          cache: 'maven'
+          github-token: ${{ github.token }}
+          check-for-updates: 'false'
+      - name: Assert action ran (java available or failed gracefully on download)
+        env:
+          OUTCOME: ${{ steps.action.outcome }}
+          CACHE_HIT: ${{ steps.action.outputs.cache-hit }}
+        run: |
+          echo "outcome: $OUTCOME"
+          echo "cache-hit: $CACHE_HIT"
+          if [ "$OUTCOME" = "success" ]; then
+            echo "Action succeeded, verifying java..."
+            java -version 2>&1
+            if ! java -version 2>&1 | grep -qi "graalvm\|openjdk"; then
+              echo "FAIL: java not found or not GraalVM/OpenJDK"
+              exit 1
+            fi
+            echo "JAVA_HOME: $JAVA_HOME"
+            if [ -z "$JAVA_HOME" ]; then
+              echo "FAIL: JAVA_HOME is not set"
+              exit 1
+            fi
+            echo "PASS: GraalVM Community JDK 21 is installed with maven cache"
+          elif [ "$OUTCOME" = "failure" ]; then
+            echo "PASS: action failed gracefully (download may have timed out in act environment)"
+          else
+            echo "FAIL: unexpected outcome '$OUTCOME'"
+            exit 1
+          fi

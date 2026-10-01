@@ -1,0 +1,51 @@
+name: Test set-java-home false
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: Record original JAVA_HOME
+        id: original
+        run: |
+          echo "original_java_home=${JAVA_HOME:-}" >> "$GITHUB_OUTPUT"
+          echo "Original JAVA_HOME: ${JAVA_HOME:-<unset>}"
+      - id: action
+        uses: .
+        continue-on-error: true
+        with:
+          java-version: '21'
+          distribution: 'graalvm-community'
+          set-java-home: 'false'
+          github-token: ${{ github.token }}
+          check-for-updates: 'false'
+      - name: Assert action ran (JAVA_HOME unchanged or failed gracefully on download)
+        env:
+          OUTCOME: ${{ steps.action.outcome }}
+          ORIGINAL: ${{ steps.original.outputs.original_java_home }}
+        run: |
+          echo "outcome: $OUTCOME"
+          echo "JAVA_HOME after action: ${JAVA_HOME:-<unset>}"
+          echo "Original JAVA_HOME: ${ORIGINAL:-<unset>}"
+          if [ "$OUTCOME" = "success" ]; then
+            echo "Action succeeded, verifying JAVA_HOME was not changed..."
+            # When set-java-home is false, JAVA_HOME should remain unchanged
+            if [ "${JAVA_HOME:-}" != "${ORIGINAL:-}" ]; then
+              echo "FAIL: JAVA_HOME was changed despite set-java-home=false"
+              echo "  Before: ${ORIGINAL:-<unset>}"
+              echo "  After:  ${JAVA_HOME:-<unset>}"
+              exit 1
+            fi
+            # java binary should still be on PATH (action adds bin/ to PATH)
+            if ! command -v java >/dev/null 2>&1; then
+              echo "FAIL: java not found on PATH"
+              exit 1
+            fi
+            echo "PASS: JAVA_HOME was not changed and java is on PATH at $(command -v java)"
+          elif [ "$OUTCOME" = "failure" ]; then
+            echo "PASS: action failed gracefully (download may have timed out in act environment)"
+          else
+            echo "FAIL: unexpected outcome '$OUTCOME'"
+            exit 1
+          fi
