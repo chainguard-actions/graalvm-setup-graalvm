@@ -1,0 +1,46 @@
+name: Test basic Oracle GraalVM setup
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - id: action
+        uses: .
+        with:
+          java-version: '21'
+          distribution: 'graalvm'
+          check-for-updates: 'false'
+      - name: Assert GRAALVM_HOME and JAVA_HOME are set
+        run: |
+          echo "GRAALVM_HOME: $GRAALVM_HOME"
+          echo "JAVA_HOME: $JAVA_HOME"
+          if [ -z "$GRAALVM_HOME" ] || [ ! -d "$GRAALVM_HOME" ]; then
+            echo "FAIL: GRAALVM_HOME not set or not a directory"
+            exit 1
+          fi
+          if [ "$JAVA_HOME" != "$GRAALVM_HOME" ]; then
+            echo "FAIL: JAVA_HOME should equal GRAALVM_HOME"
+            exit 1
+          fi
+          echo "PASS"
+      - name: Assert java is GraalVM 21 on PATH
+        run: |
+          which java
+          OUT="$(java -version 2>&1)"
+          echo "$OUT"
+          if ! echo "$OUT" | grep -q 'GraalVM'; then
+            echo "FAIL: java is not GraalVM"
+            exit 1
+          fi
+          if ! echo "$OUT" | grep -qE 'version "21'; then
+            echo "FAIL: expected Java 21"
+            exit 1
+          fi
+          echo "PASS"
+      - name: Assert native-image is available
+        run: |
+          which native-image
+          native-image --version
+          echo "PASS"

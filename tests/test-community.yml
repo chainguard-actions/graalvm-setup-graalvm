@@ -1,0 +1,34 @@
+name: Test GraalVM Community Edition setup
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - id: action
+        uses: .
+        with:
+          java-version: '21'
+          distribution: 'graalvm-community'
+          check-for-updates: 'false'
+      - name: Assert GraalVM CE is installed and on PATH
+        run: |
+          echo "GRAALVM_HOME: $GRAALVM_HOME"
+          echo "JAVA_HOME: $JAVA_HOME"
+          if [ -z "$GRAALVM_HOME" ] || [ ! -x "$GRAALVM_HOME/bin/java" ]; then
+            echo "FAIL: GRAALVM_HOME/bin/java missing"
+            exit 1
+          fi
+          OUT="$(java -version 2>&1)"
+          echo "$OUT"
+          if ! echo "$OUT" | grep -qi 'GraalVM CE'; then
+            echo "FAIL: expected GraalVM CE"
+            exit 1
+          fi
+          if ! echo "$OUT" | grep -qE 'version "21'; then
+            echo "FAIL: expected Java 21"
+            exit 1
+          fi
+          which native-image
+          echo "PASS"

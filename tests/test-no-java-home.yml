@@ -1,0 +1,35 @@
+name: Test set-java-home false
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: Record JAVA_HOME before
+        run: echo "BEFORE_JAVA_HOME=${JAVA_HOME:-}" >> "$GITHUB_ENV"
+      - id: action
+        uses: .
+        with:
+          java-version: '21'
+          distribution: 'graalvm'
+          set-java-home: 'false'
+          check-for-updates: 'false'
+      - name: Assert JAVA_HOME unchanged and GRAALVM_HOME set
+        run: |
+          echo "BEFORE: $BEFORE_JAVA_HOME"
+          echo "JAVA_HOME: ${JAVA_HOME:-}"
+          echo "GRAALVM_HOME: $GRAALVM_HOME"
+          if [ -z "$GRAALVM_HOME" ] || [ ! -x "$GRAALVM_HOME/bin/java" ]; then
+            echo "FAIL: GRAALVM_HOME not set correctly"
+            exit 1
+          fi
+          if [ "${JAVA_HOME:-}" != "$BEFORE_JAVA_HOME" ]; then
+            echo "FAIL: JAVA_HOME was modified despite set-java-home=false"
+            exit 1
+          fi
+          if [ -n "${JAVA_HOME:-}" ] && [ "${JAVA_HOME:-}" = "$GRAALVM_HOME" ]; then
+            echo "FAIL: JAVA_HOME points to GraalVM"
+            exit 1
+          fi
+          echo "PASS"

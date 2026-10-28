@@ -1,0 +1,41 @@
+name: Test GraalVM setup with maven cache
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: Ensure a pom.xml exists for the cache key
+        run: |
+          ls -la "$GITHUB_WORKSPACE/hardened/tests/fixtures/maven" 2>/dev/null || true
+          if ! find "$GITHUB_WORKSPACE" -name pom.xml -not -path '*/node_modules/*' | grep -q .; then
+            mkdir -p "$GITHUB_WORKSPACE/cache-fixture"
+            printf '<project><modelVersion>4.0.0</modelVersion><groupId>x</groupId><artifactId>y</artifactId><version>1</version></project>\n' > "$GITHUB_WORKSPACE/cache-fixture/pom.xml"
+          fi
+      - id: action
+        uses: .
+        with:
+          java-version: '21'
+          distribution: 'graalvm-community'
+          cache: 'maven'
+          check-for-updates: 'false'
+      - name: Assert GraalVM was set up
+        run: |
+          echo "GRAALVM_HOME: $GRAALVM_HOME"
+          if [ -z "$GRAALVM_HOME" ] || [ ! -d "$GRAALVM_HOME" ]; then
+            echo "FAIL: GRAALVM_HOME not set or not a directory"
+            exit 1
+          fi
+          java -version 2>&1
+          echo "PASS"
+      - name: Assert cache-hit output is valid
+        env:
+          ACTUAL: ${{ steps.action.outputs.cache-hit }}
+        run: |
+          echo "cache-hit: '$ACTUAL'"
+          # Empty when the cache service is unavailable under act; otherwise true/false
+          case "$ACTUAL" in
+            ""|true|false) echo "PASS" ;;
+            *) echo "FAIL: unexpected cache-hit value"; exit 1 ;;
+          esac
