@@ -6,22 +6,22 @@ Hardened by [Chainguard](https://www.chainguard.dev) from the upstream action at
 
 ## Versions
 
-| Version | Tag | Upstream commit |
-|---------|-----|-----------------|
-| v1.5.0 | [`v1.5.0`](https://github.com/chainguard-actions/graalvm-setup-graalvm/tree/v1.5.0) | [`f744c72`](https://github.com/graalvm/setup-graalvm/commit/f744c72a42b1995d7b0cbc314bde4bace7ac1fe1) |
-| v1.5.1 | [`v1.5.1`](https://github.com/chainguard-actions/graalvm-setup-graalvm/tree/v1.5.1) | [`2149f39`](https://github.com/graalvm/setup-graalvm/commit/2149f395d36ce12ad4ee5d7f334b26bf081fa555) |
-| v1.5.2 | [`v1.5.2`](https://github.com/chainguard-actions/graalvm-setup-graalvm/tree/v1.5.2) | [`60c2672`](https://github.com/graalvm/setup-graalvm/commit/60c26726de13f8b90771df4bc1641a52a3159994) |
-| v1.5.3 | [`v1.5.3`](https://github.com/chainguard-actions/graalvm-setup-graalvm/tree/v1.5.3) | [`bef4b0e`](https://github.com/graalvm/setup-graalvm/commit/bef4b0e916c7dd079bf60fb95d49139f67e32c5f) |
-| v1.5.4 | [`v1.5.4`](https://github.com/chainguard-actions/graalvm-setup-graalvm/tree/v1.5.4) | [`329c42c`](https://github.com/graalvm/setup-graalvm/commit/329c42c5f4c343bceb505f0b28cc8499bc2bf174) |
-| v1.5.5 | [`v1.5.5`](https://github.com/chainguard-actions/graalvm-setup-graalvm/tree/v1.5.5) | [`809afe6`](https://github.com/graalvm/setup-graalvm/commit/809afe62741147990fbf405045cd15e61bffedfe) |
-| v1.5.6 | [`v1.5.6`](https://github.com/chainguard-actions/graalvm-setup-graalvm/tree/v1.5.6) | [`6f3fa03`](https://github.com/graalvm/setup-graalvm/commit/6f3fa030c4b8f77c1f554a860f593a654538fa38) |
-| v1.6.0 | [`v1.6.0`](https://github.com/chainguard-actions/graalvm-setup-graalvm/tree/v1.6.0) | [`cabbb10`](https://github.com/graalvm/setup-graalvm/commit/cabbb10818fabc989d6dbd508e4846596d20dd2d) |
-| v1.6.1 | [`v1.6.1`](https://github.com/chainguard-actions/graalvm-setup-graalvm/tree/v1.6.1) | [`8c5543b`](https://github.com/graalvm/setup-graalvm/commit/8c5543b71f44568342e106336639979e94a8f6de) |
-| v1.6.3 | [`v1.6.3`](https://github.com/chainguard-actions/graalvm-setup-graalvm/tree/v1.6.3) | [`0def53c`](https://github.com/graalvm/setup-graalvm/commit/0def53c0fd8534bc13416c9469f5be45265824fd) |
-| v1.6.4 | [`v1.6.4`](https://github.com/chainguard-actions/graalvm-setup-graalvm/tree/v1.6.4) | [`5298d94`](https://github.com/graalvm/setup-graalvm/commit/5298d94fb55a4f185c602eeac5de1b553882abe2) |
-| v1.6.5 | [`v1.6.5`](https://github.com/chainguard-actions/graalvm-setup-graalvm/tree/v1.6.5) | [`f60d4ea`](https://github.com/graalvm/setup-graalvm/commit/f60d4ea89f14098520aea588431217bbd9551570) |
-| v1.6.6 | [`v1.6.6`](https://github.com/chainguard-actions/graalvm-setup-graalvm/tree/v1.6.6) | [`0426e2e`](https://github.com/graalvm/setup-graalvm/commit/0426e2e191540e8514dff98dc52a5f5146a2a276) |
-| v1.6.7 | [`v1.6.7`](https://github.com/chainguard-actions/graalvm-setup-graalvm/tree/v1.6.7) | [`27b360d`](https://github.com/graalvm/setup-graalvm/commit/27b360dbb857524eaf0b4c4cef364d38e5b4f173) |
+| Version | Tag | Upstream commit | Hardening report |
+|---------|-----|-----------------|------------------|
+| v1.5.0 | [`v1.5.0`](https://github.com/chainguard-actions/graalvm-setup-graalvm/tree/v1.5.0) | [`f744c72`](https://github.com/graalvm/setup-graalvm/commit/f744c72a42b1995d7b0cbc314bde4bace7ac1fe1) | [`HARDENING.md`](https://github.com/chainguard-actions/graalvm-setup-graalvm/blob/v1.5.0/HARDENING.md) |
+| v1.5.1 | [`v1.5.1`](https://github.com/chainguard-actions/graalvm-setup-graalvm/tree/v1.5.1) | [`2149f39`](https://github.com/graalvm/setup-graalvm/commit/2149f395d36ce12ad4ee5d7f334b26bf081fa555) | [`HARDENING.md`](https://github.com/chainguard-actions/graalvm-setup-graalvm/blob/v1.5.1/HARDENING.md) |
+| v1.5.2 | [`v1.5.2`](https://github.com/chainguard-actions/graalvm-setup-graalvm/tree/v1.5.2) | [`60c2672`](https://github.com/graalvm/setup-graalvm/commit/60c26726de13f8b90771df4bc1641a52a3159994) | [`HARDENING.md`](https://github.com/chainguard-actions/graalvm-setup-graalvm/blob/v1.5.2/HARDENING.md) |
+| v1.5.3 | [`v1.5.3`](https://github.com/chainguard-actions/graalvm-setup-graalvm/tree/v1.5.3) | [`bef4b0e`](https://github.com/graalvm/setup-graalvm/commit/bef4b0e916c7dd079bf60fb95d49139f67e32c5f) | [`HARDENING.md`](https://github.com/chainguard-actions/graalvm-setup-graalvm/blob/v1.5.3/HARDENING.md) |
+| v1.5.4 | [`v1.5.4`](https://github.com/chainguard-actions/graalvm-setup-graalvm/tree/v1.5.4) | [`329c42c`](https://github.com/graalvm/setup-graalvm/commit/329c42c5f4c343bceb505f0b28cc8499bc2bf174) | [`HARDENING.md`](https://github.com/chainguard-actions/graalvm-setup-graalvm/blob/v1.5.4/HARDENING.md) |
+| v1.5.5 | [`v1.5.5`](https://github.com/chainguard-actions/graalvm-setup-graalvm/tree/v1.5.5) | [`809afe6`](https://github.com/graalvm/setup-graalvm/commit/809afe62741147990fbf405045cd15e61bffedfe) | [`HARDENING.md`](https://github.com/chainguard-actions/graalvm-setup-graalvm/blob/v1.5.5/HARDENING.md) |
+| v1.5.6 | [`v1.5.6`](https://github.com/chainguard-actions/graalvm-setup-graalvm/tree/v1.5.6) | [`6f3fa03`](https://github.com/graalvm/setup-graalvm/commit/6f3fa030c4b8f77c1f554a860f593a654538fa38) | [`HARDENING.md`](https://github.com/chainguard-actions/graalvm-setup-graalvm/blob/v1.5.6/HARDENING.md) |
+| v1.6.0 | [`v1.6.0`](https://github.com/chainguard-actions/graalvm-setup-graalvm/tree/v1.6.0) | [`cabbb10`](https://github.com/graalvm/setup-graalvm/commit/cabbb10818fabc989d6dbd508e4846596d20dd2d) | [`HARDENING.md`](https://github.com/chainguard-actions/graalvm-setup-graalvm/blob/v1.6.0/HARDENING.md) |
+| v1.6.1 | [`v1.6.1`](https://github.com/chainguard-actions/graalvm-setup-graalvm/tree/v1.6.1) | [`8c5543b`](https://github.com/graalvm/setup-graalvm/commit/8c5543b71f44568342e106336639979e94a8f6de) | [`HARDENING.md`](https://github.com/chainguard-actions/graalvm-setup-graalvm/blob/v1.6.1/HARDENING.md) |
+| v1.6.3 | [`v1.6.3`](https://github.com/chainguard-actions/graalvm-setup-graalvm/tree/v1.6.3) | [`0def53c`](https://github.com/graalvm/setup-graalvm/commit/0def53c0fd8534bc13416c9469f5be45265824fd) | [`HARDENING.md`](https://github.com/chainguard-actions/graalvm-setup-graalvm/blob/v1.6.3/HARDENING.md) |
+| v1.6.4 | [`v1.6.4`](https://github.com/chainguard-actions/graalvm-setup-graalvm/tree/v1.6.4) | [`5298d94`](https://github.com/graalvm/setup-graalvm/commit/5298d94fb55a4f185c602eeac5de1b553882abe2) | [`HARDENING.md`](https://github.com/chainguard-actions/graalvm-setup-graalvm/blob/v1.6.4/HARDENING.md) |
+| v1.6.5 | [`v1.6.5`](https://github.com/chainguard-actions/graalvm-setup-graalvm/tree/v1.6.5) | [`f60d4ea`](https://github.com/graalvm/setup-graalvm/commit/f60d4ea89f14098520aea588431217bbd9551570) | [`HARDENING.md`](https://github.com/chainguard-actions/graalvm-setup-graalvm/blob/v1.6.5/HARDENING.md) |
+| v1.6.6 | [`v1.6.6`](https://github.com/chainguard-actions/graalvm-setup-graalvm/tree/v1.6.6) | [`0426e2e`](https://github.com/graalvm/setup-graalvm/commit/0426e2e191540e8514dff98dc52a5f5146a2a276) | [`HARDENING.md`](https://github.com/chainguard-actions/graalvm-setup-graalvm/blob/v1.6.6/HARDENING.md) |
+| v1.6.7 | [`v1.6.7`](https://github.com/chainguard-actions/graalvm-setup-graalvm/tree/v1.6.7) | [`27b360d`](https://github.com/graalvm/setup-graalvm/commit/27b360dbb857524eaf0b4c4cef364d38e5b4f173) | [`HARDENING.md`](https://github.com/chainguard-actions/graalvm-setup-graalvm/blob/v1.6.7/HARDENING.md) |
 
 ## Privacy
 
