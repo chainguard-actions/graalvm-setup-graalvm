@@ -4,8 +4,13 @@
   "version": "v1.6.6",
   "commit_sha": "0426e2e191540e8514dff98dc52a5f5146a2a276",
   "url": "https://github.com/graalvm/setup-graalvm",
-  "policy_sha": "d636be7e43ef829af6e853da6b3c7566db9f72fe",
+  "policy_sha": "374911c4be584df24e6da57af2d990570ef0f859",
   "test_policy_sha": "843adf9e4b8f85d0c08b27b9d0b09dd094b54702",
   "test_agent_version": "2",
-  "harden_agent_version": "2"
+  "harden_agent_version": "2",
+  "dist_artifact": {
+    "gcs_uri": "gs://patch-actions-node-artifacts/dist-artifacts/graalvm/setup-graalvm/v1.6.6/sha256-afadf467f98fc6b0cce2c3c61294d626ee03fa94c8b26402f785819cff5b6e8d.tar.gz",
+    "sha256": "afadf467f98fc6b0cce2c3c61294d626ee03fa94c8b26402f785819cff5b6e8d",
+    "size_bytes": 1223318
+  }
 }
