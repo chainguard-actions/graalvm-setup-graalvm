@@ -23,6 +23,7 @@ Hardened by [Chainguard](https://www.chainguard.dev) from the upstream action at
 | v1.6.6 | [`v1.6.6`](https://github.com/chainguard-actions/graalvm-setup-graalvm/tree/v1.6.6) | [`0426e2e`](https://github.com/graalvm/setup-graalvm/commit/0426e2e191540e8514dff98dc52a5f5146a2a276) | [`HARDENING.md`](https://github.com/chainguard-actions/graalvm-setup-graalvm/blob/v1.6.6/HARDENING.md) |
 | v1.6.7 | [`v1.6.7`](https://github.com/chainguard-actions/graalvm-setup-graalvm/tree/v1.6.7) | [`27b360d`](https://github.com/graalvm/setup-graalvm/commit/27b360dbb857524eaf0b4c4cef364d38e5b4f173) | [`HARDENING.md`](https://github.com/chainguard-actions/graalvm-setup-graalvm/blob/v1.6.7/HARDENING.md) |
 | v1.6.8 | [`v1.6.8`](https://github.com/chainguard-actions/graalvm-setup-graalvm/tree/v1.6.8) | [`f70bc80`](https://github.com/graalvm/setup-graalvm/commit/f70bc8032f90a104502824a54bcb94b6f01715bc) | [`HARDENING.md`](https://github.com/chainguard-actions/graalvm-setup-graalvm/blob/v1.6.8/HARDENING.md) |
+| v1.6.9 | [`v1.6.9`](https://github.com/chainguard-actions/graalvm-setup-graalvm/tree/v1.6.9) | [`d6eca25`](https://github.com/graalvm/setup-graalvm/commit/d6eca2595046623d69d636041513c80abf745406) | [`HARDENING.md`](https://github.com/chainguard-actions/graalvm-setup-graalvm/blob/v1.6.9/HARDENING.md) |
 
 ## Privacy
 
